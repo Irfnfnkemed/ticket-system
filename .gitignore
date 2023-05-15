@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+.idea
+cmake-build-debug
+main.cpp
+CMakeLists.txt
+a
+ans
+data
+qqq
+.txt
