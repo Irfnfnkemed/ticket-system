@@ -35,6 +35,8 @@ private:
         int operator()(size_t addr) {
             return addr % max_size;
         }
+
+        cache_node *not_find_tag() { return nullptr; }
     };
 
     int size;
@@ -207,6 +209,13 @@ public:
     inline size_t get_root_addr() { return key_root; }
 
     inline void update_root_addr(size_t addr) { key_root = addr; }
+
+    bool is_empty() {
+        key_node *key_tmp = get_key(key_root);
+        if (!key_tmp->is_leaf) { return false; }
+        info_node *info_tmp = get_info(key_tmp->address[0]);
+        return info_tmp->number == 0;
+    }
 
 };
 

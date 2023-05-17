@@ -3,7 +3,9 @@
 
 #include <cstdio>
 
-//实现从Key类到Value类(指针类)的映射，需要有最大的容量max，以及用于hash散列的仿函数类hash
+//实现从Key类到Value类的映射
+//需要有最大的容量max，以及用于hash散列的仿函数类hash
+//另外，hash类需要有Value not_find_tag()函数，用于标记未找到的情形
 template<class Key, class Value, int max, class hash>
 class hash_link {//实现从size_t到cache_node的散列表
 private:
@@ -68,7 +70,18 @@ public:
                 return p->value;
             } else { p = p->next; }
         }
-        return nullptr;
+        return Hash.not_find_tag();
+    }
+
+    bool modify(Key key_, Value value_) {
+        node *p = link[Hash(key_)];
+        while (p != nullptr) {
+            if (p->key == key_) {
+                p->value = value_;
+                return true;
+            } else { p = p->next; }
+        }
+        return false;
     }
 };
 

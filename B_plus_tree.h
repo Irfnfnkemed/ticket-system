@@ -328,7 +328,7 @@ private:
     //mark为0，表示查找模式；mark为1，表示修改模式
     //若目标key值只可能出现在当前子树上，返回false，表结束查找
     //反之，返回true，表继续查找
-    bool find_and_modify(const Key &key, size_t addr, bool &flag, int mark, const Information &info = Information()) {
+    bool find_and_modify(const Key &key, size_t addr, bool &flag, int mark) {
         key_node *key_tmp = Files.get_key(addr);
         if (key_tmp->is_leaf) {//叶节点，到info对应文件里查找
             info_node *info_tmp;
@@ -350,7 +350,7 @@ private:
         } else {//非叶节点，递归查找
             for (int i = 0; i <= key_tmp->number; ++i) {
                 if (judge_key(key_tmp, i, key)) {
-                    if (!find_and_modify(key, key_tmp->address[i], flag, mark, info)) { return false; }//已经结束
+                    if (!find_and_modify(key, key_tmp->address[i], flag, mark)) { return false; }//已经结束
                     key_tmp = Files.get_key(addr);//防止key_tmp失效
                 }
             }
@@ -386,10 +386,10 @@ public:
     //若未找到，进行相应操作
     //仅适用于键值不可重复的情况
     //包裹函数，兼具判断是否找到的功能
-    void modify(const Key &key, const Information &info) {
+    void modify(const Key &key) {
         if (is_key_repeated) { throw invalid_call(); }
         bool flag = false;
-        find_and_modify(key, Files.get_root_addr(), flag, 1, info);
+        find_and_modify(key, Files.get_root_addr(), flag, 1);
         if (!flag) { Info_operator.not_find(); }
     }
 
@@ -447,6 +447,8 @@ public:
             Files.update_root_addr(key_addr_new_root);//更新根节点位置
         }
     }
+
+    bool is_empty() { return Files.is_empty(); }
 };
 
 #endif //B_PLUS_TREE_B_PLUS_TREE_H

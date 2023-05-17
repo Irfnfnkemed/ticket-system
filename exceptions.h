@@ -23,4 +23,12 @@ class invalid_call : public exception {
     virtual std::string what() { return "The function is called invalidly."; }
 };
 
+class operator_failed : public exception {
+    virtual std::string what() { return "The operator is failed."; }
+};
+
+class other_error : public exception {
+    virtual std::string what() { return "An error occurred."; }
+};
+
 #endif //B_PLUS_TREE_EXCEPTIONS_H
