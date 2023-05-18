@@ -98,8 +98,8 @@ private:
         if (info_tmp->number == 0) { return true; }//空结点，直接插入
         if (info_tmp->number == i) { return mark; }//最后一个位置，为了防止value失去顺序，插到下一个块中(除了最后一个节点外)
         if (info_tmp->key[i] < key) { return false; }
+        if (key < info_tmp->key[i]) { return true; }
         if (is_key_repeated) {
-            if (key < info_tmp->key[i]) { return true; }
             if (info_tmp->info[i] < info) { return false; }
             if (info < info_tmp->info[i]) { return true; }
             throw repeated_key_and_value();//key-info对与已存储信息重复，抛出错误
