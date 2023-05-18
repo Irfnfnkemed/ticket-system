@@ -51,19 +51,19 @@ class account {
 
     class info_operator {
     public:
-        class User_name user_name;
+        char user_name[21], cur_user_name[21];
 
         class User_info user_info;
 
         bool print = true;
-        int privilege = -1;
+        int cur_privilege = -1;
         bool flag[4];
 
         void find(const User_info &user_info_) {
             user_info = user_info_;
             if (print) {
-                if (privilege >= user_info.privilege) {
-                    printf("%s %s %s %d\n", user_name.username, user_info.name,
+                if (cur_privilege > user_info.privilege || strcmp(user_name, cur_user_name) == 0) {
+                    printf("%s %s %s %d\n", user_name, user_info.name,
                            user_info.mail_addr, user_info.privilege);
                 } else {
                     printf("-1\n");
@@ -78,13 +78,13 @@ class account {
         }
 
         void modify(User_info &user_info_) {
-            if (privilege >= user_info.privilege) {
-                if (flag[0]) { strcpy(user_info.password, user_info_.password); }
-                if (flag[1]) { strcpy(user_info.name, user_info_.name); }
-                if (flag[2]) { strcpy(user_info.mail_addr, user_info_.mail_addr); }
-                if (flag[3]) { user_info.privilege = user_info_.privilege; }
-                printf("%s %s %s %d\n", user_name.username, user_info.name,
-                       user_info.mail_addr, user_info.privilege);
+            if (cur_privilege > user_info_.privilege || strcmp(cur_user_name, user_name) == 0) {
+                if (flag[0]) { strcpy(user_info_.password, user_info.password); }
+                if (flag[1]) { strcpy(user_info_.name, user_info.name); }
+                if (flag[2]) { strcpy(user_info_.mail_addr, user_info.mail_addr); }
+                if (flag[3]) { user_info_.privilege = user_info.privilege; }
+                printf("%s %s %s %d\n", user_name, user_info_.name,
+                       user_info_.mail_addr, user_info_.privilege);
             } else {
                 printf("-1\n");
                 throw operator_failed();
@@ -116,15 +116,16 @@ public:
         return;
     }
 
-    bool find_user(const char user_name_[], bool print = true, int privilege = -1) {
-        user_account.Info_operator.print = print;
-        user_account.Info_operator.privilege = privilege;
+    bool find_user(const char user_name_[], bool print_ = true, int privilege_ = -1) {
+        user_account.Info_operator.print = print_;
+        user_account.Info_operator.cur_privilege = privilege_;
         try { user_account.find(User_name(user_name_)); }
         catch (operator_failed) { return false; }
         return true;
     }
 
-    bool modify_user(const char user_name_[]) {
+    bool modify_user(const char user_name_[], int privilege_) {
+        user_account.Info_operator.cur_privilege = privilege_;
         try { user_account.modify(user_name_); }
         catch (operator_failed) { return false; }
         return true;
@@ -138,8 +139,9 @@ public:
         return true;
     }
 
-    void set_user(const char user_name_[]) {
-        strcpy(user_account.Info_operator.user_name.username, user_name_);
+    void set_user(const char cur_user_name_[], const char user_name_[]) {
+        strcpy(user_account.Info_operator.cur_user_name, cur_user_name_);
+        strcpy(user_account.Info_operator.user_name, user_name_);
     }
 
     void modify_user_password(const char password_[]) {
@@ -163,6 +165,8 @@ public:
     }
 
     inline bool empty() { return is_empty; }
+
+    void change_empty() { is_empty = false; }
 
     void reset_modify() {
         for (int i = 0; i <= 3; ++i) { user_account.Info_operator.flag[i] = false; }
