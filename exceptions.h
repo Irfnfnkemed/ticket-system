@@ -31,4 +31,20 @@ class other_error : public exception {
     virtual std::string what() { return "An error occurred."; }
 };
 
+class invalid_iterator : public exception {
+    virtual std::string what() { return "Use invalid iterator."; }
+};
+
+class runtime_error : public exception {
+    virtual std::string what() { return "A runtime error occurred."; }
+};
+
+class index_out_of_bound : public exception {
+    virtual std::string what() { return "The index is out of bound."; }
+};
+
+class container_is_empty : public exception {
+    virtual std::string what() { return "The container is empty."; }
+};
+
 #endif //B_PLUS_TREE_EXCEPTIONS_H
