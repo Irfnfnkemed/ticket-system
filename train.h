@@ -66,13 +66,12 @@ private:
             type = type_[0];
             station_num = station_num_;
             seat_num = seat_num_;
-            parse_by_bar(stations_, (char **) stations);
+            parse_by_bar<31>(stations_, stations);
             sum_price[0] = 0;
             parse_by_bar_to_sum(prices_, sum_price);
-            arrive_time[0] = -1;
             leave_time[0] = time_to_int(start_time_);
-            leave_time[station_num - 1] = -1;
             parse_by_bar_to_sum_with_two(travel_times_, stopover_times_, arrive_time, leave_time);
+            arrive_time[0] = leave_time[station_num - 1] = -1;
             parse_by_bar_to_date(sale_date, begin_date.date_int, end_date.date_int);
         }
 

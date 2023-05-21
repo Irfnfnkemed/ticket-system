@@ -9,10 +9,10 @@
 
 class token_scanner {
 private:
-    char command_line[500];//表示处理的字符串
+    char command_line[5000];//表示处理的字符串
     int now = -1;//表示现在处理的字符串的位置
     int len = -1;//表示处理的字符串的长度
-    char load[500];//用于承载切片
+    char load[5000];//用于承载切片
 
     void read_line() {
         int cur_char, i = 0;
@@ -138,7 +138,7 @@ public:
             Train.delete_train(tmp['i' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "release_train") == 0) {
             Token_scanner.read_by_command(tmp);
-            Train.delete_train(tmp['i' - 'a']);
+            Train.release_train(tmp['i' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "exit") == 0) {
             printf("bye\n");
             end = true;

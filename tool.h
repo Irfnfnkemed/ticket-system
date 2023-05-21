@@ -14,7 +14,8 @@ int char_to_int(char to_transfer[]) {
     return tmp;
 }
 
-void parse_by_bar(char to_transfer[], char *target[]) {
+template<int size>
+void parse_by_bar(char to_transfer[], char target[][size]) {
     int j = 0, k = 0, l = strlen(to_transfer);
     for (int i = 0; i < l; ++i) {
         if (to_transfer[i] == '|') {
@@ -57,10 +58,10 @@ void parse_by_bar_to_sum_with_two(char to_transfer1[], char to_transfer2[],
         target1[j1] = target2[j1 - 1] + tmp1;
         tmp1 = 0;
         ++i1, ++j1;
-        while (to_transfer2[i2] != '\0' && to_transfer1[i2] != '|') {
+        while (to_transfer2[i2] != '\0' && to_transfer2[i2] != '|') {
             tmp2 = tmp2 * 10 + to_transfer2[i2++] - '0';
         }
-        target2[j2] = target1[j2] + tmp1;
+        target2[j2] = target1[j2] + tmp2;
         tmp2 = 0;
         ++i2, ++j2;
     }
