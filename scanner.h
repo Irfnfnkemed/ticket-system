@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cstring>
 #include "log.h"
+#include "train.h"
+#include "tool.h"
 
 class token_scanner {
 private:
@@ -53,24 +55,24 @@ public:
         return true;
     }
 
-    int to_int(char target[]) {
-        int tmp = 0;
-        for (int i = 0; i < strlen(target); ++i) {
-            if (target[i] >= '0' && target[i] <= '9') {
-                tmp = tmp * 10 + (target[i] - '0');
-            } else { throw other_error(); }//输入不合法
-        }
-        return tmp;
-    }
-
     char *get_now() { return load; }
+
+    void read_by_command(char tmp[30][5000]) {
+        char cnt;
+        while (next_token()) {
+            cnt = load[1] - 'a';
+            next_token();
+            strcpy(tmp[cnt], load);
+        }
+    };
 };
 
 class main_scanner {
 private:
     token_scanner Token_scanner;
     log Log;
-    char tmp[30][500];//作为临时变量
+    train Train;
+    char tmp[30][5000];//作为临时变量
     bool end = false;
 public:
     void deal_line() {
@@ -83,41 +85,25 @@ public:
                 aaa[i - 1] = '\0';
             }
         }
-        int ttt = Token_scanner.to_int(aaa);
+        int ttt = char_to_int(aaa);
         ttt;
         printf("%s ", Token_scanner.get_now());//输出时间戳
         Token_scanner.next_token();
-        int cnt;
         if (strcmp(Token_scanner.get_now(), "add_user") == 0) {
-            while (Token_scanner.next_token()) {
-                cnt = (Token_scanner.get_now())[1] - 'a';
-                Token_scanner.next_token();
-                strcpy(tmp[cnt], Token_scanner.get_now());
-            }
-            Log.add_user(tmp['c' - 'a'], Token_scanner.to_int(tmp['g' - 'a']), tmp['u' - 'a'],
+            Token_scanner.read_by_command(tmp);
+            Log.add_user(tmp['c' - 'a'], char_to_int(tmp['g' - 'a']), tmp['u' - 'a'],
                          tmp['p' - 'a'], tmp['n' - 'a'], tmp['m' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "login") == 0) {
-            while (Token_scanner.next_token()) {
-                cnt = (Token_scanner.get_now())[1] - 'a';
-                Token_scanner.next_token();
-                strcpy(tmp[cnt], Token_scanner.get_now());
-            }
+            Token_scanner.read_by_command(tmp);
             Log.login(tmp['u' - 'a'], tmp['p' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "logout") == 0) {
-            while (Token_scanner.next_token()) {
-                cnt = (Token_scanner.get_now())[1] - 'a';
-                Token_scanner.next_token();
-                strcpy(tmp[cnt], Token_scanner.get_now());
-            }
+            Token_scanner.read_by_command(tmp);
             Log.logout(tmp['u' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "query_profile") == 0) {
-            while (Token_scanner.next_token()) {
-                cnt = (Token_scanner.get_now())[1] - 'a';
-                Token_scanner.next_token();
-                strcpy(tmp[cnt], Token_scanner.get_now());
-            }
+            Token_scanner.read_by_command(tmp);
             Log.query_profile(tmp['c' - 'a'], tmp['u' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "modify_profile") == 0) {
+            char cnt;
             bool flag[4] = {false, false, false, false};
             while (Token_scanner.next_token()) {
                 cnt = (Token_scanner.get_now())[1] - 'a';
@@ -138,10 +124,21 @@ public:
                 strcpy(tmp[cnt], Token_scanner.get_now());
             }
             int privilege;
-            if (flag[3]) { privilege = Token_scanner.to_int(tmp['g' - 'a']); }
+            if (flag[3]) { privilege = char_to_int(tmp['g' - 'a']); }
             else { privilege = -1; }
             Log.modify_profile(tmp['c' - 'a'], tmp['u' - 'a'], flag, tmp['p' - 'a'],
                                tmp['n' - 'a'], tmp['m' - 'a'], privilege);
+        } else if (strcmp(Token_scanner.get_now(), "add_train") == 0) {
+            Token_scanner.read_by_command(tmp);
+            Train.add_train(tmp['i' - 'a'], char_to_int(tmp['n' - 'a']), char_to_int(tmp['m' - 'a']),
+                            tmp['s' - 'a'], tmp['p' - 'a'], tmp['x' - 'a'], tmp['t' - 'a'],
+                            tmp['o' - 'a'], tmp['d' - 'a'], tmp['y' - 'a']);
+        } else if (strcmp(Token_scanner.get_now(), "delete_train") == 0) {
+            Token_scanner.read_by_command(tmp);
+            Train.delete_train(tmp['i' - 'a']);
+        } else if (strcmp(Token_scanner.get_now(), "release_train") == 0) {
+            Token_scanner.read_by_command(tmp);
+            Train.delete_train(tmp['i' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "exit") == 0) {
             printf("bye\n");
             end = true;
@@ -149,6 +146,7 @@ public:
     }
 
     inline bool is_end() { return end; }
+
 };
 
 #endif //TICKET_SYSTEM_SCANNER_H
