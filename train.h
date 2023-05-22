@@ -36,12 +36,15 @@ private:
             return *this;
         }
 
-        date &operator+=(int add) {
-            for (int i = 1; i <= add; ++i) { ++(*this); }
-            return *this;
+        date operator+(int add) {
+            date tmp = *this;
+            for (int i = 1; i <= add; ++i) { ++tmp; }
+            return tmp;
         }
 
         bool operator<(const date &obj) const { return date_int < obj.date_int; }
+
+        void print() { printf("%c%d%c%02d", '0', date_int / 100, '-', date_int % 100); }
     };
 
     class train_info {
@@ -50,10 +53,10 @@ private:
         char type;
         int station_num;
         int seat_num;
-        char stations[101][31];
-        int sum_price[101];
-        int arrive_time[101];
-        int leave_time[101];
+        char stations[100][31];
+        int sum_price[100];
+        int arrive_time[100];
+        int leave_time[100];
         date begin_date;//对于日期，采用一个三位数的int来记录。比如：07-21，用721记录
         date end_date;
 
@@ -100,7 +103,7 @@ private:
     class train_seat {
     public:
         int station_num;
-        int seat[100];//最多100站，99个区间
+        int seat[99];//最多100站，99个区间
 
         train_seat() {}
 
@@ -165,16 +168,16 @@ private:
     class train_seat_operator {
     public:
         char Train_id[21];
-        train_info Train_info;
+        train_seat Train_seat;
 
-        void find(const train_info &obj) { Train_info = obj; }
+        void find(const train_seat &obj) { Train_seat = obj; }
 
         void not_find() { throw operator_failed(); }
 
-        void modify(train_info &obj) {
-            Train_info = obj;
-            if (obj.release) { throw operator_failed(); }//已经释放，不可再次释放
-            obj.release = true;
+        void modify(train_seat &obj) {
+//            Train_info = obj;
+//            if (obj.release) { throw operator_failed(); }//已经释放，不可再次释放
+//            obj.release = true;
         }
     };
 
@@ -204,11 +207,11 @@ public:
 
     void add_train(char train_id_[], int station_num_, int seat_num_, char stations_[],
                    char prices_[], char start_time_[], char travel_times_[],
-                   char stopover_times_[], char sale_date[], char type_[]) {
+                   char stopover_times_[], char sale_date_[], char type_[]) {
         try {
             Trains.insert(train_ID(train_id_),
                           train_info(station_num_, seat_num_, stations_, prices_, start_time_,
-                                     travel_times_, stopover_times_, sale_date, type_));
+                                     travel_times_, stopover_times_, sale_date_, type_));
         } catch (repeated_key) {
             printf("-1\n");
             return;//插入失败
@@ -240,10 +243,10 @@ public:
         }
         date beg, end;
         for (int i = 0; i < Trains.Info_operator.Train_info.station_num - 1; ++i) {
-            beg = Trains.Info_operator.Train_info.begin_date;
-            end = Trains.Info_operator.Train_info.end_date;
-            beg += (Trains.Info_operator.Train_info.leave_time[i]) / 86400;
-            end += (Trains.Info_operator.Train_info.leave_time[i]) / 86400;
+            beg = Trains.Info_operator.Train_info.begin_date +
+                  (Trains.Info_operator.Train_info.leave_time[i]) / 1440;
+            end = Trains.Info_operator.Train_info.end_date +
+                  (Trains.Info_operator.Train_info.leave_time[i]) / 1440;
             Stations.insert(station(Trains.Info_operator.Train_info.stations[i]),
                             ID_and_sale_date(train_id_, beg, end));//添加经过各站的火车
         }
@@ -251,6 +254,35 @@ public:
         return;
     }
 
+    void query_train(char train_id_[], char date_[]) {
+        try { Trains.find(train_ID(train_id_)); }
+        catch (operator_failed) {
+            printf("-1\n");//未找到
+            return;
+        }
+        date this_day = date(date_to_int(date_));
+        if (this_day < Trains.Info_operator.Train_info.begin_date ||
+            Trains.Info_operator.Train_info.end_date < this_day) {
+            printf("-1\n");//不在发车区间内
+            return;
+        }
+        if (Trains.Info_operator.Train_info.release) {
+            Train_seats.find(ID_and_date(train_id_, this_day));
+        }
+        printf("%s %c\n", train_id_, Trains.Info_operator.Train_info.type);
+        for (int i = 0; i < Trains.Info_operator.Train_info.station_num; ++i) {
+            printf("%s ", Trains.Info_operator.Train_info.stations[i]);
+            print_date_and_time(this_day, Trains.Info_operator.Train_info.arrive_time[i]);
+            printf(" -> ");
+            print_date_and_time(this_day, Trains.Info_operator.Train_info.leave_time[i]);
+            printf(" %d", Trains.Info_operator.Train_info.sum_price[i]);
+            if (i != Trains.Info_operator.Train_info.station_num - 1) {
+                if (Trains.Info_operator.Train_info.release) {
+                    printf(" %d\n", Train_seats.Info_operator.Train_seat.seat[i]);
+                } else { printf(" %d\n", Trains.Info_operator.Train_info.seat_num); }
+            } else { printf(" x\n"); }
+        }
+    }
 };
 
 #endif //TICKET_SYSTEM_TRAIN_H

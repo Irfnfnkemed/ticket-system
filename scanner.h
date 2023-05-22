@@ -139,6 +139,9 @@ public:
         } else if (strcmp(Token_scanner.get_now(), "release_train") == 0) {
             Token_scanner.read_by_command(tmp);
             Train.release_train(tmp['i' - 'a']);
+        } else if (strcmp(Token_scanner.get_now(), "query_train") == 0) {
+            Token_scanner.read_by_command(tmp);
+            Train.query_train(tmp['i' - 'a'], tmp['d' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "exit") == 0) {
             printf("bye\n");
             end = true;

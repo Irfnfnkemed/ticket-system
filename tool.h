@@ -80,5 +80,16 @@ int date_to_int(char to_transfer[]) {
     return (to_transfer[4] + 10 * to_transfer[3] + 100 * to_transfer[1]) - 111 * '0';
 }
 
+template<class date>
+void print_date_and_time(date date_, int time_) {
+    if (time_ == -1) {
+        printf("xx-xx xx:xx");
+        return;
+    }
+    (date_ + time_ / 1440).print();
+    time_ = time_ % 1440;
+    printf(" %02d%c%02d", time_ / 60, ':', time_ % 60);
+}
+
 
 #endif //TICKET_SYSTEM_TOOL_H
