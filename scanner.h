@@ -133,15 +133,19 @@ public:
             Token_scanner.read_by_command(tmp);
             Train.query_ticket(tmp['s' - 'a'], tmp['t' - 'a'], tmp['d' - 'a'], char_to_sort(tmp['p' - 'a']));
         } else if (strcmp(Token_scanner.get_now(), "buy_ticket") == 0) {
-            tmp['p' - 'a'][0] = '\0';
+            tmp['q' - 'a'][0] = '\0';
             Token_scanner.read_by_command(tmp);
             Ticket.buy_ticket(tmp['u' - 'a'], tmp['i' - 'a'], tmp['d' - 'a'], tmp['f' - 'a'],
-                              tmp['t' - 'a'], char_to_int(tmp['n' - 'a']), time, char_to_bool(tmp['p' - 'a']));
+                              tmp['t' - 'a'], char_to_int(tmp['n' - 'a']), time, char_to_bool(tmp['q' - 'a']));
+        } else if (strcmp(Token_scanner.get_now(), "query_order") == 0) {
+            Token_scanner.read_by_command(tmp);
+            Ticket.query_order(tmp['u' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "exit") == 0) {
             printf("bye\n");
             end = true;
         }
     }
+
 
     inline bool is_end() { return end; }
 

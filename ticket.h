@@ -56,14 +56,17 @@ private:
         user_order() {}
 
         bool operator<(const user_order &obj) const {
-            return time_stamp < obj.time_stamp;
+            return time_stamp > obj.time_stamp;
         }
     };
 
 #pragma pack(pop)
 
     class user_order_operation {
-        void find(const user_order &obj) {}
+    public:
+        vector<user_order> orders;
+
+        void find(const user_order &obj) { orders.push_back(obj); }
 
         void not_find() { throw operator_failed(); }
 
@@ -132,6 +135,39 @@ public:
                                      info.leave_time[beg], info.arrive_time[end],
                                      info.sum_price[end] - info.sum_price[beg], number_, 2));
             printf("queue\n");
+        }
+    }
+
+    void query_order(char user_name_[]) {
+        if (!Log->check_login(user_name_)) {
+            printf("-1\n");//用户未登录
+            return;
+        }
+        Orders.Info_operator.orders.clear();//重置
+        try { Orders.find(user(user_name_)); }
+        catch (operator_failed) {
+            printf("0\n");//无对应信息
+            return;
+        }
+        printf("%d\n", Orders.Info_operator.orders.size());
+        for (auto it = Orders.Info_operator.orders.begin();
+             it != Orders.Info_operator.orders.end(); ++it) {
+            switch (it->status) {
+                case 1:
+                    printf("[success] ");
+                    break;
+                case 2:
+                    printf("[pending] ");
+                    break;
+                case 3:
+                    printf("[refunded] ");
+            }
+            printf("%s %s ", it->train_id, it->station_from);
+            print_date_and_time(it->train_date, it->leave_time);
+            printf(" -> ");
+            printf("%s ", it->station_to);
+            print_date_and_time(it->train_date, it->arrive_time);
+            printf(" %d %d\n", it->price, it->number);
         }
     }
 
