@@ -119,6 +119,11 @@ public:
             return *(vec->data[index]);
         }
 
+        T *operator->() const {
+            if (index == vec->len) { throw runtime_error(); }
+            return vec->data[index];
+        }
+
         bool operator==(const iterator &rhs) const {
             return vec == rhs.vec && index == rhs.index;
         }
@@ -449,6 +454,30 @@ public:
             len_max /= 2;
             --len;
         }
+    }
+
+    void sort() {
+        T **tmp = new T *[len];
+        sort(0, len - 1, tmp);
+        delete[]tmp;
+    }
+
+    void sort(int l, int r, T **tmp) {
+        if (l >= r) { return; }
+        int m = (l + r) >> 1;
+        sort(l, m, tmp);
+        sort(m + 1, r, tmp);
+        int l_point = l, r_point = m + 1, tmp_point = l;
+        while (l_point <= m && r_point <= r) {
+            if (*(data[l_point]) < *(data[r_point])) {
+                tmp[tmp_point++] = data[l_point++];
+            } else {
+                tmp[tmp_point++] = data[r_point++];
+            }
+        }
+        while (l_point <= m) { tmp[tmp_point++] = data[l_point++]; }
+        while (r_point <= r) { tmp[tmp_point++] = data[r_point++]; }
+        for (int i = l; i <= r; ++i) { data[i] = tmp[i]; }
     }
 
     struct my_true_type {

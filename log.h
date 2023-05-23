@@ -31,7 +31,7 @@ class log {
             for (int i = 0; i < strlen(user_name.username); ++i) {
                 out = out * base + user_name.username[i];
             }
-            return int(out) % max;
+            return out % max;
         }
 
         int not_find_tag() { return -1; }

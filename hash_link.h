@@ -27,20 +27,7 @@ private:
 public:
     hash_link() : Hash(max) { for (int i = 0; i < max; ++i) { link[i] = nullptr; }}
 
-    ~hash_link() {
-        node *p;
-        for (int i = 0; i < max; ++i) {
-            if (link[i] == nullptr) { continue; }
-            else {
-                while (true) {
-                    p = link[i];
-                    if (p == nullptr) { break; }
-                    link[i] = link[i]->next;
-                    delete p;
-                }
-            }
-        }
-    }
+    ~hash_link() { clear(); }
 
     void insert(Key key_, Value value_) {
         int pos = Hash(key_);
@@ -82,6 +69,21 @@ public:
             } else { p = p->next; }
         }
         return false;
+    }
+
+    void clear() {
+        node *p;
+        for (int i = 0; i < max; ++i) {
+            if (link[i] == nullptr) { continue; }
+            else {
+                while (true) {
+                    p = link[i];
+                    if (p == nullptr) { break; }
+                    link[i] = link[i]->next;
+                    delete p;
+                }
+            }
+        }
     }
 };
 

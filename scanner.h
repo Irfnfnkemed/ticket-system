@@ -142,6 +142,9 @@ public:
         } else if (strcmp(Token_scanner.get_now(), "query_train") == 0) {
             Token_scanner.read_by_command(tmp);
             Train.query_train(tmp['i' - 'a'], tmp['d' - 'a']);
+        } else if (strcmp(Token_scanner.get_now(), "query_ticket") == 0) {
+            Token_scanner.read_by_command(tmp);
+            Train.query_ticket(tmp['s' - 'a'], tmp['t' - 'a'], tmp['d' - 'a'], tmp['p' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "exit") == 0) {
             printf("bye\n");
             end = true;
