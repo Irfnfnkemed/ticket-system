@@ -109,4 +109,9 @@ bool char_to_sort(char to_transfer[]) {
     else { return true; }
 }
 
+int char_to_n(char to_transfer[]) {
+    if (to_transfer[0] == '\0') { return 1; }
+    return char_to_int(to_transfer);
+}
+
 #endif //TICKET_SYSTEM_TOOL_H

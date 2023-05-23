@@ -196,39 +196,42 @@ public:
 
     class train_seat_operator {
     public:
-        train_seat Train_seat;
+        train_seat *Train_seat;
         int beg;
         int end;
         int change;//从beg到end需要改变的票数
-        int max_seats;//某区间最大可能的票数
 
-        void find(const train_seat &obj) { Train_seat = obj; }
+        void find(train_seat &obj) { Train_seat = &obj; }
 
         void not_find() { throw operator_failed(); }
 
         void modify(train_seat &obj) {
-            if (change < 0 && get_seats(obj, beg, end) < -change) {
+            if (change < 0 && get_seats(&obj, beg, end) < -change) {
                 throw operator_failed();
-            } else { change_seats(obj, beg, end, change); }
+            } else { change_seats(&obj, beg, end, change); }
         }
 
         int get_seats(int beg_, int end_) {
             return get_seats(Train_seat, beg_, end_);
         }
 
-        int get_seats(const train_seat &obj, int beg_, int end_) {
-            max_seats = obj.seat[beg_];
+        int get_seats(train_seat *obj, int beg_, int end_) {
+            int max_seats = obj->seat[beg_];
             for (int i = beg_ + 1; i < end_; ++i) {
-                if (obj.seat[i] < max_seats) { max_seats = obj.seat[i]; }
+                if (obj->seat[i] < max_seats) { max_seats = obj->seat[i]; }
             }
             return max_seats;
         }
 
-        void change_seats(train_seat &obj, int beg_, int end_, int change_) {
+        void change_seats(train_seat *obj, int beg_, int end_, int change_) {
             for (int i = beg_; i < end_; ++i) {
-                obj.seat[i] += change_;
+                obj->seat[i] += change_;
             }
-            max_seats += change_;
+            Train_seat = obj;
+        }
+
+        void change_seats(int beg_, int end_, int change_) {
+            change_seats(Train_seat, beg_, end_, change_);
         }
 
         void set_change(int beg_, int end_, int change_) {
@@ -339,12 +342,19 @@ public:
 
     train_info &get_train_info() { return Trains.Info_operator.Train_info; }
 
-    bool change_seats(char train_id_[], date date_, int beg, int end, int change, int &max_seats_) {
+    bool change_seats(char train_id_[], date date_, int beg, int end, int change) {
         Train_seats.Info_operator.set_change(beg, end, change);
         try { Train_seats.modify(ID_and_date(train_id_, date_)); }
         catch (operator_failed) { return false; }
-        max_seats_ = Train_seats.Info_operator.max_seats;
         return true;
+    }
+
+    int get_max_seats(int beg_, int end_) {
+        return Train_seats.Info_operator.get_seats(beg_, end_);
+    }
+
+    void change_this_seats(int beg_, int end_, int change_) {
+        Train_seats.Info_operator.change_seats(beg_, end_, change_);
     }
 
     void add_train(char train_id_[], int station_num_, int seat_num_, char stations_[],
@@ -398,7 +408,11 @@ public:
     void query_ticket(char station_start_[], char station_to_[],
                       char date_[], bool sort_) {//sort为true，按时间排序；反之，按价格排序
         Stations.Info_operator.pass_train.clear();//重置
-        Stations.find(station(station_start_));
+        try { Stations.find(station(station_start_)); }
+        catch (operator_failed) {
+            printf("0\n");//无满足的车辆，结束
+            return;
+        }
         if (Stations.Info_operator.pass_train.empty()) {
             printf("0\n");//无满足的车辆，结束
             return;
@@ -415,7 +429,11 @@ public:
                             query_info(it->leave_time, it->price, it->number));
         }
         Stations.Info_operator.pass_train.clear();//重置
-        Stations.find(station(station_to_));
+        try { Stations.find(station(station_to_)); }
+        catch (operator_failed) {
+            printf("0\n");//无满足的车辆，结束
+            return;
+        }
         if (Stations.Info_operator.pass_train.empty()) {
             printf("0\n");//无满足的车辆，结束
             return;
@@ -475,7 +493,7 @@ public:
             printf(" %d", Trains.Info_operator.Train_info.sum_price[i]);
             if (i != Trains.Info_operator.Train_info.station_num - 1) {
                 if (Trains.Info_operator.Train_info.release) {
-                    printf(" %d\n", Train_seats.Info_operator.Train_seat.seat[i]);
+                    printf(" %d\n", Train_seats.Info_operator.Train_seat->seat[i]);
                 } else { printf(" %d\n", Trains.Info_operator.Train_info.seat_num); }
             } else { printf(" x\n"); }
         }
