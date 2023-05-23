@@ -5,6 +5,7 @@
 #include <cstring>
 #include "log.h"
 #include "train.h"
+#include "ticket.h"
 #include "tool.h"
 
 class token_scanner {
@@ -72,21 +73,19 @@ private:
     token_scanner Token_scanner;
     log Log;
     train Train;
+    ticket Ticket;
+
     char tmp[30][5000];//作为临时变量
     bool end = false;
 public:
+
+    main_scanner() : Ticket(&Log, &Train) {}
+
     void deal_line() {
         Token_scanner.scan();
         Token_scanner.next_token();
-        char aaa[100];
-        for (int i = 1; i < strlen(Token_scanner.get_now()); ++i) {
-            aaa[i - 1] = Token_scanner.get_now()[i];
-            if (i == strlen(Token_scanner.get_now()) - 1) {
-                aaa[i - 1] = '\0';
-            }
-        }
-        int ttt = char_to_int(aaa);
-        ttt;
+        int time = time_stamp(Token_scanner.get_now());
+        time;
         printf("%s ", Token_scanner.get_now());//输出时间戳
         Token_scanner.next_token();
         if (strcmp(Token_scanner.get_now(), "add_user") == 0) {
@@ -103,26 +102,13 @@ public:
             Token_scanner.read_by_command(tmp);
             Log.query_profile(tmp['c' - 'a'], tmp['u' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "modify_profile") == 0) {
-            char cnt;
             bool flag[4] = {false, false, false, false};
-            while (Token_scanner.next_token()) {
-                cnt = (Token_scanner.get_now())[1] - 'a';
-                switch (cnt) {
-                    case 'p' - 'a':
-                        flag[0] = true;
-                        break;
-                    case 'n' - 'a':
-                        flag[1] = true;
-                        break;
-                    case 'm' - 'a':
-                        flag[2] = true;
-                        break;
-                    case 'g' - 'a':
-                        flag[3] = true;
-                }
-                Token_scanner.next_token();
-                strcpy(tmp[cnt], Token_scanner.get_now());
-            }
+            tmp['p' - 'a'][0] = tmp['n' - 'a'][0] = tmp['m' - 'a'][0] = tmp['g' - 'a'][0] = '\0';
+            Token_scanner.read_by_command(tmp);
+            if (tmp['p' - 'a'][0] != '\0') { flag[0] = true; }
+            if (tmp['n' - 'a'][0] != '\0') { flag[1] = true; }
+            if (tmp['m' - 'a'][0] != '\0') { flag[2] = true; }
+            if (tmp['g' - 'a'][0] != '\0') { flag[3] = true; }
             int privilege;
             if (flag[3]) { privilege = char_to_int(tmp['g' - 'a']); }
             else { privilege = -1; }
@@ -143,8 +129,14 @@ public:
             Token_scanner.read_by_command(tmp);
             Train.query_train(tmp['i' - 'a'], tmp['d' - 'a']);
         } else if (strcmp(Token_scanner.get_now(), "query_ticket") == 0) {
+            tmp['p' - 'a'][0] = '\0';
             Token_scanner.read_by_command(tmp);
-            Train.query_ticket(tmp['s' - 'a'], tmp['t' - 'a'], tmp['d' - 'a'], tmp['p' - 'a']);
+            Train.query_ticket(tmp['s' - 'a'], tmp['t' - 'a'], tmp['d' - 'a'], char_to_sort(tmp['p' - 'a']));
+        } else if (strcmp(Token_scanner.get_now(), "buy_ticket") == 0) {
+            tmp['p' - 'a'][0] = '\0';
+            Token_scanner.read_by_command(tmp);
+            Ticket.buy_ticket(tmp['u' - 'a'], tmp['i' - 'a'], tmp['d' - 'a'], tmp['f' - 'a'],
+                              tmp['t' - 'a'], char_to_int(tmp['n' - 'a']), time, char_to_bool(tmp['p' - 'a']));
         } else if (strcmp(Token_scanner.get_now(), "exit") == 0) {
             printf("bye\n");
             end = true;

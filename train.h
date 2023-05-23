@@ -7,23 +7,10 @@
 #include <cstring>
 
 class train {
-private:
+    friend class ticket;
+
+public:
 #pragma pack(push, 1)
-
-    class train_ID {
-    public:
-        char train_id[21];
-
-        train_ID() {}
-
-        train_ID(char train_id_[]) { strcpy(train_id, train_id_); }
-
-        bool operator<(const train_ID &obj) const { return strcmp(train_id, obj.train_id) < 0; }
-
-        bool operator==(train_ID &obj) {
-            return strcmp(train_id, obj.train_id) == 0;
-        }
-    };
 
     class date {
     public:
@@ -64,6 +51,21 @@ private:
         bool operator<(const date &obj) const { return date_int < obj.date_int; }
 
         void print() { printf("%c%d%c%02d", '0', date_int / 100, '-', date_int % 100); }
+    };
+
+    class train_ID {
+    public:
+        char train_id[21];
+
+        train_ID() {}
+
+        train_ID(char train_id_[]) { strcpy(train_id, train_id_); }
+
+        bool operator<(const train_ID &obj) const { return strcmp(train_id, obj.train_id) < 0; }
+
+        bool operator==(train_ID &obj) {
+            return strcmp(train_id, obj.train_id) == 0;
+        }
     };
 
     class train_info {
@@ -179,7 +181,6 @@ private:
 
     class train_info_operator {
     public:
-        char Train_id[21];
         train_info Train_info;
 
         void find(const train_info &obj) { Train_info = obj; }
@@ -195,22 +196,45 @@ private:
 
     class train_seat_operator {
     public:
-        char Train_id[21];
         train_seat Train_seat;
+        int beg;
+        int end;
+        int change;//从beg到end需要改变的票数
+        int max_seats;//某区间最大可能的票数
 
         void find(const train_seat &obj) { Train_seat = obj; }
 
         void not_find() { throw operator_failed(); }
 
         void modify(train_seat &obj) {
+            if (change < 0 && get_seats(obj, beg, end) < -change) {
+                throw operator_failed();
+            } else { change_seats(obj, beg, end, change); }
         }
 
-        int get_seats(int beg, int end) {
-            int max = Train_seat.seat[beg];
-            for (int i = beg + 1; i < end; ++i) {
-                if (Train_seat.seat[i] < max) { max = Train_seat.seat[i]; }
+        int get_seats(int beg_, int end_) {
+            return get_seats(Train_seat, beg_, end_);
+        }
+
+        int get_seats(const train_seat &obj, int beg_, int end_) {
+            max_seats = obj.seat[beg_];
+            for (int i = beg_ + 1; i < end_; ++i) {
+                if (obj.seat[i] < max_seats) { max_seats = obj.seat[i]; }
             }
-            return max;
+            return max_seats;
+        }
+
+        void change_seats(train_seat &obj, int beg_, int end_, int change_) {
+            for (int i = beg_; i < end_; ++i) {
+                obj.seat[i] += change_;
+            }
+            max_seats += change_;
+        }
+
+        void set_change(int beg_, int end_, int change_) {
+            beg = beg_;
+            end = end_;
+            change = change_;
         }
     };
 
@@ -222,8 +246,7 @@ private:
 
         void not_find() { throw operator_failed(); }
 
-        void modify(pass &obj) {
-        }
+        void modify(pass &obj) {}
     };
 
     class query_info {
@@ -308,6 +331,22 @@ public:
 
     train() : Trains("trains", false), Train_seats("seats", false), Stations("stations", true) {}
 
+    bool find_train(char train_id_[]) {
+        try { Trains.find(train_id_); }
+        catch (operator_failed) { return false; }
+        return true;
+    }
+
+    train_info &get_train_info() { return Trains.Info_operator.Train_info; }
+
+    bool change_seats(char train_id_[], date date_, int beg, int end, int change, int &max_seats_) {
+        Train_seats.Info_operator.set_change(beg, end, change);
+        try { Train_seats.modify(ID_and_date(train_id_, date_)); }
+        catch (operator_failed) { return false; }
+        max_seats_ = Train_seats.Info_operator.max_seats;
+        return true;
+    }
+
     void add_train(char train_id_[], int station_num_, int seat_num_, char stations_[],
                    char prices_[], char start_time_[], char travel_times_[],
                    char stopover_times_[], char sale_date_[], char type_[]) {
@@ -356,7 +395,8 @@ public:
         return;
     }
 
-    void query_ticket(char station_start_[], char station_to_[], char date_[], char sort_[] = "time") {
+    void query_ticket(char station_start_[], char station_to_[],
+                      char date_[], bool sort_) {//sort为true，按时间排序；反之，按价格排序
         Stations.Info_operator.pass_train.clear();//重置
         Stations.find(station(station_start_));
         if (Stations.Info_operator.pass_train.empty()) {
@@ -395,7 +435,7 @@ public:
             printf("0\n");//无满足的车辆，结束
             return;
         }
-        if (strcmp(sort_, "time") == 0) { possible_train::set_time(); }
+        if (sort_) { possible_train::set_time(); }
         else { possible_train::set_cost(); }
         tmp_vec.sort();
         printf("%d\n", tmp_vec.size());

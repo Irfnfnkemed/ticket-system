@@ -103,6 +103,12 @@ public:
             }
         }
     }
+
+    bool check_login(char user_name_[]) {
+        int cur_privilege = log_account.find(User_name(user_name_));
+        if (cur_privilege == -1) { return false; }//未登录
+        else { return true; }
+    }
 };
 
 #endif //TICKET_SYSTEM_LOG_H

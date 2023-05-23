@@ -91,5 +91,22 @@ void print_date_and_time(date date_, int time_) {
     printf(" %02d%c%02d", time_ / 60, ':', time_ % 60);
 }
 
+int time_stamp(char to_transfer[]) {
+    int tmp = 0, l = strlen(to_transfer);
+    for (int i = 1; i < l - 1; ++i) {
+        tmp = tmp * 10 + (to_transfer[i] - '0');
+    }
+    return tmp;
+}
+
+bool char_to_bool(char to_transfer[]) {
+    if (strcmp(to_transfer, "true") == 0) { return true; }
+    else { return false; }
+}
+
+bool char_to_sort(char to_transfer[]) {
+    if (strcmp(to_transfer, "cost") == 0) { return false; }
+    else { return true; }
+}
 
 #endif //TICKET_SYSTEM_TOOL_H
