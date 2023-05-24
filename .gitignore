@@ -33,8 +33,6 @@
 
 .idea
 cmake-build-debug
-main.cpp
-CMakeLists.txt
 a
 ans
 account
