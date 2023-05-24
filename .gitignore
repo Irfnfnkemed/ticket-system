@@ -31,6 +31,9 @@
 *.out
 *.app
 
+main.cpp
+CMakeLists.txt
+
 .idea
 cmake-build-debug
 a
@@ -46,3 +49,6 @@ stations
 trains
 order
 pending
+aoo
+app
+ass

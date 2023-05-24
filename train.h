@@ -206,32 +206,25 @@ public:
         void not_find() { throw operator_failed(); }
 
         void modify(train_seat &obj) {
-            if (change < 0 && get_seats(&obj, beg, end) < -change) {
+            Train_seat = &obj;
+            if (change < 0 && get_seats(beg, end) < -change) {
                 throw operator_failed();
-            } else { change_seats(&obj, beg, end, change); }
+            } else { change_seats(beg, end, change); }
         }
 
-        int get_seats(int beg_, int end_) {
-            return get_seats(Train_seat, beg_, end_);
-        }
 
-        int get_seats(train_seat *obj, int beg_, int end_) {
-            int max_seats = obj->seat[beg_];
+        int get_seats(int beg_, int end_) const {
+            int max_seats = Train_seat->seat[beg_];
             for (int i = beg_ + 1; i < end_; ++i) {
-                if (obj->seat[i] < max_seats) { max_seats = obj->seat[i]; }
+                if (Train_seat->seat[i] < max_seats) { max_seats = Train_seat->seat[i]; }
             }
             return max_seats;
         }
 
-        void change_seats(train_seat *obj, int beg_, int end_, int change_) {
-            for (int i = beg_; i < end_; ++i) {
-                obj->seat[i] += change_;
-            }
-            Train_seat = obj;
-        }
-
         void change_seats(int beg_, int end_, int change_) {
-            change_seats(Train_seat, beg_, end_, change_);
+            for (int i = beg_; i < end_; ++i) {
+                Train_seat->seat[i] += change_;
+            }
         }
 
         void set_change(int beg_, int end_, int change_) {

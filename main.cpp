@@ -54,8 +54,8 @@ const int M = 4096;
 bool train::possible_train::flag = true;
 
 int main() {
-//    freopen("datas/pressure_1_easy/1.in", "r", stdin);
-//    freopen("aaa", "w", stdout);
+    freopen("datas/pressure_1_easy/1.in", "r", stdin);
+    freopen("aoo", "w", stdout);
 
     main_scanner a;
     while (!a.is_end()) {

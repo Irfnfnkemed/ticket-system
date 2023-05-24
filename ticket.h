@@ -103,7 +103,7 @@ private:
                 --number;
                 if (number == 0) {
                     orders.push_back(obj);
-                    if (obj.status != 1) { throw operator_failed(); }//无法退订
+                    if (obj.status == 3) { throw operator_failed(); }//无法退订
                     obj.status = 3;
                     mode = 0;
                 }
@@ -264,17 +264,23 @@ public:
             return;
         }
         user_order this_order = Orders.Info_operator.orders[0];
-        Train->change_seats(this_order.train_id, this_order.train_date,
-                            this_order.beg, this_order.end, this_order.number);//改变座位
-        Pending.find(train::ID_and_date(this_order.train_id, this_order.train_date));
-        for (auto it = Pending.Info_operator.all_pending.begin();
-             it != Pending.Info_operator.all_pending.end(); ++it) {
-            if (Train->get_max_seats(it->beg, it->end) >= it->number) {
-                Train->change_this_seats(it->beg, it->end, -(it->number));
-                Pending.erase(train::ID_and_date(this_order.train_id, this_order.train_date), *it);
-                Orders.Info_operator.set_find_special(it->time_stamp);
-                Orders.find(user(it->username)); //此处，find充当修改的功能，将状态由pending改为success
+        if (this_order.status == 1) {//需要修改车票，并满足候补队列的要求
+            Train->change_seats(this_order.train_id, this_order.train_date,
+                                this_order.beg, this_order.end, this_order.number);//改变座位
+            Pending.find(train::ID_and_date(this_order.train_id, this_order.train_date));
+            for (auto it = Pending.Info_operator.all_pending.begin();
+                 it != Pending.Info_operator.all_pending.end(); ++it) {
+                if (Train->get_max_seats(it->beg, it->end) >= it->number) {
+                    Train->change_this_seats(it->beg, it->end, -(it->number));
+                    Pending.erase(train::ID_and_date(this_order.train_id, this_order.train_date), *it);
+                    Orders.Info_operator.set_find_special(it->time_stamp);
+                    Orders.find(user(it->username)); //此处，find充当修改的功能，将状态由pending改为success
+                }
             }
+        } else if (this_order.status == 2) {//需要从等待队列里删去
+            Pending.erase(train::ID_and_date(this_order.train_id, this_order.train_date),
+                          pending(user_name_, this_order.time_stamp,
+                                  this_order.beg, this_order.end, this_order.number));
         }
         printf("0\n");
     }
