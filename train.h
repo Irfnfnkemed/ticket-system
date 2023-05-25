@@ -184,11 +184,11 @@ public:
         train_info Train_info;
         bool fail_tag = false;
 
-        void find(const train_info &obj) { Train_info = obj; }
+        void find(const train_info &obj, bool &tmp) { Train_info = obj; }
 
         void not_find() { fail_tag = true; }
 
-        void modify(train_info &obj) {
+        void modify(train_info &obj, bool &tmp) {
             Train_info = obj;
             if (obj.release) { fail_tag = true; }//已经释放，不可再次释放
             obj.release = true;
@@ -203,16 +203,16 @@ public:
         int beg;
         int end;
         int change;//从beg到end需要改变的票数
+        bool fail_tag = false;
 
-        void find(train_seat &obj) { Train_seat = &obj; }
+        void find(train_seat &obj, bool &tmp) { Train_seat = &obj; }
 
-        void not_find() { throw operator_failed(); }
+        void not_find() { fail_tag = true; }
 
-        void modify(train_seat &obj) {
+        void modify(train_seat &obj, bool &tmp) {
             Train_seat = &obj;
-            if (change < 0 && get_seats(beg, end) < -change) {
-                throw operator_failed();
-            } else { change_seats(beg, end, change); }
+            if (change < 0 && get_seats(beg, end) < -change) { fail_tag = true; }
+            else { change_seats(beg, end, change); }
         }
 
 
@@ -234,18 +234,25 @@ public:
             beg = beg_;
             end = end_;
             change = change_;
+            fail_tag = false;
         }
     };
 
     class pass_operator {
     public:
         vector<pass> pass_train;
+        bool fail_tag = false;
 
-        void find(const pass &obj) { pass_train.push_back(obj); }
+        void find(const pass &obj, bool &tmp) { pass_train.push_back(obj); }
 
-        void not_find() { throw operator_failed(); }
+        void not_find() { fail_tag = true; }
 
-        void modify(pass &obj) {}
+        void modify(pass &obj, bool &tmp) {}
+
+        void set_fail_tag() {
+            fail_tag = false;
+            pass_train.clear();
+        }
     };
 
     class query_info {
@@ -341,8 +348,8 @@ public:
 
     bool change_seats(char train_id_[], date date_, int beg, int end, int change) {
         Train_seats.Info_operator.set_change(beg, end, change);
-        try { Train_seats.modify(ID_and_date(train_id_, date_)); }
-        catch (operator_failed) { return false; }
+        Train_seats.modify(ID_and_date(train_id_, date_));
+        if (Train_seats.Info_operator.fail_tag) { return false; }
         return true;
     }
 
@@ -375,8 +382,10 @@ public:
             printf("-1\n");//无列车
             return;
         }
-        if (Trains.Info_operator.Train_info.release) { printf("-1\n"); }//已发布
-        else { Trains.erase(train_ID(train_id_), Trains.Info_operator.Train_info); }
+        if (Trains.Info_operator.Train_info.release) {
+            printf("-1\n");//已发布
+            return;
+        } else { Trains.erase(train_ID(train_id_), Trains.Info_operator.Train_info); }
         printf("0\n");
     }
 
@@ -407,14 +416,10 @@ public:
 
     void query_ticket(char station_start_[], char station_to_[],
                       char date_[], bool sort_) {//sort为true，按时间排序；反之，按价格排序
-        Stations.Info_operator.pass_train.clear();//重置
-        try { Stations.find(station(station_start_)); }
-        catch (operator_failed) {
-            printf("0\n");//无满足的车辆，结束
-            return;
-        }
-        if (Stations.Info_operator.pass_train.empty()) {
-            printf("0\n");//无满足的车辆，结束
+        Stations.Info_operator.set_fail_tag();//重置
+        Stations.find(station(station_start_));
+        if (Stations.Info_operator.fail_tag) {
+            printf("0\n");//无过站车辆，结束
             return;
         }
         date this_day = date(date_to_int(date_));
@@ -428,14 +433,10 @@ public:
             tmp_hash.insert(train_ID(it->train_id),
                             query_info(it->leave_time, it->price, it->number));
         }
-        Stations.Info_operator.pass_train.clear();//重置
-        try { Stations.find(station(station_to_)); }
-        catch (operator_failed) {
-            printf("0\n");//无满足的车辆，结束
-            return;
-        }
-        if (Stations.Info_operator.pass_train.empty()) {
-            printf("0\n");//无满足的车辆，结束
+        Stations.Info_operator.set_fail_tag();//重置
+        Stations.find(station(station_to_));
+        if (Stations.Info_operator.fail_tag) {
+            printf("0\n");//无过站车辆，结束
             return;
         }
         tmp_vec.clear();

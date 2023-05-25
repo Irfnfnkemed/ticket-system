@@ -96,44 +96,53 @@ private:
         //mode为2，将第number个放入orders中，并同时改变其状态为refunded
         //mode为3，将对应的一项的状态由pending改为success
         //mode为0，表示find不应继续下去，抛出错误
+        bool fail_tag = false;
 
-        void find(user_order &obj) {
+        void find(user_order &obj, bool &tmp) {
             if (mode == 1) { orders.push_back(obj); }
             else if (mode == 2) {
                 --number;
                 if (number == 0) {
                     orders.push_back(obj);
-                    if (obj.status == 3) { throw operator_failed(); }//无法退订
+                    if (obj.status == 3) {//无法退订
+                        fail_tag = true;
+                        return;
+                    }
                     obj.status = 3;
                     mode = 0;
+                    tmp = true;//终止B+树
                 }
             } else if (mode == 3) {
                 if (obj.time_stamp == number && obj.status == 2) {
                     obj.status = 1;
                     mode = 0;
+                    tmp = true;//终止B+树
                 }
             }
         }
 
-        void not_find() { throw operator_failed(); }
+        void not_find() { fail_tag = true; }
 
-        void modify(user_order &obj) {}
+        void modify(user_order &obj, bool &tmp) {}
 
         void set_find_all() {
             orders.clear();
             mode = 1;
+            fail_tag = false;
         }
 
         void set_find_n(int n_) {
             orders.clear();
             mode = 2;
             number = n_;
+            fail_tag = false;
         }
 
         void set_find_special(int time_stamp_) {
             orders.clear();
             mode = 3;
             number = time_stamp_;
+            fail_tag = false;
         }
 
     };
@@ -142,11 +151,11 @@ private:
     public:
         vector<pending> all_pending;
 
-        void find(const pending &obj) { all_pending.push_back(obj); }
+        void find(const pending &obj, bool &tmp) { all_pending.push_back(obj); }
 
         void not_find() {}
 
-        void modify(pending &obj) {}
+        void modify(pending &obj, bool &tmp) {}
     };
 
     B_plus_tree<user, user_order, 4096 * 5, user_order_operation> Orders;
@@ -221,8 +230,8 @@ public:
             return;
         }
         Orders.Info_operator.set_find_all();//重置
-        try { Orders.find(user(user_name_)); }
-        catch (operator_failed) {
+        Orders.find(user(user_name_));
+        if (Orders.Info_operator.fail_tag) {
             printf("0\n");//无对应信息
             return;
         }
@@ -254,8 +263,8 @@ public:
             return;
         }
         Orders.Info_operator.set_find_n(n_);//设置模式
-        try { Orders.find(user(user_name_)); }
-        catch (operator_failed) {
+        Orders.find(user(user_name_));
+        if (Orders.Info_operator.fail_tag) {
             printf("-1\n");//无订单，或者并不是交易成功的记录
             return;
         }

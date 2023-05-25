@@ -58,8 +58,9 @@ class account {
         bool print = true;
         int cur_privilege = -1;
         bool flag[4];
+        bool find_fail = false;
 
-        void find(const User_info &user_info_) {
+        void find(const User_info &user_info_, bool &tmp) {
             user_info = user_info_;
             if (print) {
                 if (cur_privilege > user_info.privilege || strcmp(user_name, cur_user_name) == 0) {
@@ -67,17 +68,17 @@ class account {
                            user_info.mail_addr, user_info.privilege);
                 } else {
                     printf("-1\n");
-                    throw operator_failed();
+                    find_fail = true;
                 }
             }
         }
 
         void not_find() {
             if (print) { printf("-1\n"); }
-            throw operator_failed();
+            find_fail = true;
         }
 
-        void modify(User_info &user_info_) {
+        void modify(User_info &user_info_, bool &tmp) {
             if (cur_privilege > user_info_.privilege || strcmp(cur_user_name, user_name) == 0) {
                 if (flag[0]) { strcpy(user_info_.password, user_info.password); }
                 if (flag[1]) { strcpy(user_info_.name, user_info.name); }
@@ -87,9 +88,11 @@ class account {
                        user_info_.mail_addr, user_info_.privilege);
             } else {
                 printf("-1\n");
-                throw operator_failed();
+                find_fail = true;
             }
         }
+
+        void set_find_fail() { find_fail = false; }
     };
 
 private:
@@ -119,21 +122,23 @@ public:
     bool find_user(const char user_name_[], bool print_ = true, int privilege_ = -1) {
         user_account.Info_operator.print = print_;
         user_account.Info_operator.cur_privilege = privilege_;
-        try { user_account.find(User_name(user_name_)); }
-        catch (operator_failed) { return false; }
+        user_account.Info_operator.set_find_fail();
+        user_account.find(User_name(user_name_));
+        if (user_account.Info_operator.find_fail) { return false; }
         return true;
     }
 
     bool modify_user(const char user_name_[], int privilege_) {
+        user_account.Info_operator.print = true;
         user_account.Info_operator.cur_privilege = privilege_;
-        try { user_account.modify(user_name_); }
-        catch (operator_failed) { return false; }
+        user_account.Info_operator.set_find_fail();
+        user_account.modify(user_name_);
+        if (user_account.Info_operator.find_fail) { return false; }
         return true;
     }
 
     bool get_password_and_privilege(const char user_name_[], char password_[], int &privilege) {
-        try { find_user(user_name_, false); }
-        catch (other_error) { return false; }
+        find_user(user_name_, false);
         privilege = user_account.Info_operator.user_info.privilege;
         strcpy(password_, user_account.Info_operator.user_info.password);
         return true;

@@ -8,7 +8,7 @@
 //key_node_size是key节点空间，info_node_size是info节点空间
 //Key、Information需要重载operator< 、需有默认构造函数
 //info_operator类用于find函数和modify函数
-//需要有find(Information),not_find(),modify(Information,const &Information)函数
+//需要有find(Information,bool&),not_find(),modify(Information&,bool&)函数
 template<class Key, class Information, int node_size, class info_operator>
 class B_plus_tree {
 private:
@@ -342,8 +342,8 @@ private:
                         if (info_tmp->key[j] < key) { continue; }
                         else if (key < info_tmp->key[j]) { return false; }//结束
                         else {
-                            if (!mark) { Info_operator.find(info_tmp->info[j]); }
-                            else { Info_operator.modify(info_tmp->info[j]); }
+                            if (!mark) { Info_operator.find(info_tmp->info[j], halt); }
+                            else { Info_operator.modify(info_tmp->info[j], halt); }
                             flag = true;
                             if (halt) { return true; }
                         }
@@ -458,8 +458,6 @@ public:
     }
 
     bool is_empty() { return Files.is_empty(); }
-
-    void set_halt() { halt = true; }
 };
 
 #endif //B_PLUS_TREE_B_PLUS_TREE_H
