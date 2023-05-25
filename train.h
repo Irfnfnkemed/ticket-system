@@ -182,16 +182,19 @@ public:
     class train_info_operator {
     public:
         train_info Train_info;
+        bool fail_tag = false;
 
         void find(const train_info &obj) { Train_info = obj; }
 
-        void not_find() { throw operator_failed(); }
+        void not_find() { fail_tag = true; }
 
         void modify(train_info &obj) {
             Train_info = obj;
-            if (obj.release) { throw operator_failed(); }//已经释放，不可再次释放
+            if (obj.release) { fail_tag = true; }//已经释放，不可再次释放
             obj.release = true;
         }
+
+        void set_fail_tag() { fail_tag = false; }
     };
 
     class train_seat_operator {
@@ -328,8 +331,9 @@ public:
     train() : Trains("trains", false), Train_seats("seats", false), Stations("stations", true) {}
 
     bool find_train(char train_id_[]) {
-        try { Trains.find(train_id_); }
-        catch (operator_failed) { return false; }
+        Trains.Info_operator.set_fail_tag();
+        Trains.find(train_id_);
+        if (Trains.Info_operator.fail_tag) { return false; }
         return true;
     }
 
@@ -365,18 +369,21 @@ public:
     }
 
     void delete_train(char train_id_[]) {
-        try { Trains.find(train_id_); }
-        catch (operator_failed) {
+        Trains.Info_operator.set_fail_tag();
+        Trains.find(train_id_);
+        if (Trains.Info_operator.fail_tag) {
             printf("-1\n");//无列车
             return;
         }
         if (Trains.Info_operator.Train_info.release) { printf("-1\n"); }//已发布
         else { Trains.erase(train_ID(train_id_), Trains.Info_operator.Train_info); }
+        printf("0\n");
     }
 
     void release_train(char train_id_[]) {
-        try { Trains.modify(train_id_); }
-        catch (operator_failed) {
+        Trains.Info_operator.set_fail_tag();
+        Trains.modify(train_id_);
+        if (Trains.Info_operator.fail_tag) {
             printf("-1\n");//已经发布或者不存在
             return;
         }
