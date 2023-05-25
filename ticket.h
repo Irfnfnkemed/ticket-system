@@ -267,14 +267,17 @@ public:
         if (this_order.status == 1) {//需要修改车票，并满足候补队列的要求
             Train->change_seats(this_order.train_id, this_order.train_date,
                                 this_order.beg, this_order.end, this_order.number);//改变座位
+            Pending.Info_operator.all_pending.clear();
             Pending.find(train::ID_and_date(this_order.train_id, this_order.train_date));
-            for (auto it = Pending.Info_operator.all_pending.begin();
-                 it != Pending.Info_operator.all_pending.end(); ++it) {
-                if (Train->get_max_seats(it->beg, it->end) >= it->number) {
-                    Train->change_this_seats(it->beg, it->end, -(it->number));
-                    Pending.erase(train::ID_and_date(this_order.train_id, this_order.train_date), *it);
-                    Orders.Info_operator.set_find_special(it->time_stamp);
-                    Orders.find(user(it->username)); //此处，find充当修改的功能，将状态由pending改为success
+            if (Pending.Info_operator.all_pending.size() != 0) {
+                for (auto it = Pending.Info_operator.all_pending.begin();
+                     it != Pending.Info_operator.all_pending.end(); ++it) {
+                    if (Train->get_max_seats(it->beg, it->end) >= it->number) {
+                        Train->change_this_seats(it->beg, it->end, -(it->number));
+                        Pending.erase(train::ID_and_date(this_order.train_id, this_order.train_date), *it);
+                        Orders.Info_operator.set_find_special(it->time_stamp);
+                        Orders.find(user(it->username)); //此处，find充当修改的功能，将状态由pending改为success
+                    }
                 }
             }
         } else if (this_order.status == 2) {//需要从等待队列里删去
