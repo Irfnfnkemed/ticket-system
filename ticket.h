@@ -175,10 +175,10 @@ public:
         }
         int beg = -1, end = -1;
         for (int i = 0; i < info.station_num; ++i) {
-            if (beg == -1 || strcmp(station_from_, info.stations[i]) == 0) {
+            if (beg == -1 && strcmp(station_from_, info.stations[i]) == 0) {
                 beg = i;
             }
-            if (end == -1 || strcmp(station_to_, info.stations[i]) == 0) {
+            if (end == -1 && strcmp(station_to_, info.stations[i]) == 0) {
                 end = i;
             }
         }
