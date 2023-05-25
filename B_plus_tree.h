@@ -85,6 +85,7 @@ private:
 
     files<key_node, info_node> Files;
     bool is_key_repeated = true;//为true，允许key重复；反之，则不可。但是不论怎样，不允许Key、Information都重复
+    bool halt;//为true，表示中途退出(仅用于find和modify)
 
     //判断是否要继续进入对应块中进行操作
     inline bool judge_key(key_node *key_tmp, int i, const Key &key) {
@@ -147,25 +148,26 @@ private:
                     for (int j = 0; j < info_tmp->number; ++j) {
                         if (info_tmp->key[j] < key) { continue; }
                         else if (key < info_tmp->key[j]) { return false; }//无对应信息，删除失败
-                        else if (info_tmp->info[j] < info) { continue; }
-                        else if (info < info_tmp->info[j]) { return false; }//无对应信息，删除失败
-                        else {//找到信息，删除
-                            info_tmp->remove(j);
-                            if (j == 0) {
-                                if (i >= 1) {//删除最前面，更新节点索引，不需向上调整索引
-                                    key_tmp->key[i - 1] = info_tmp->key[0];
-                                    mark = false;
-                                } else {//向上返回需调整的索引
-                                    mark = true;
-                                    key_new = info_tmp->key[0];
-                                }
-                            } else { mark = false; }
-                            if (info_tmp->number < max_info_number / 2) {
-                                flag = adjust_erase(key_tmp, i);//进行借块或并块调整，并更新flag
-                            } else { flag = false; }
-                            return true;
-                        }
+                        if (is_key_repeated) {
+                            if (info_tmp->info[j] < info) { continue; }
+                            else if (info < info_tmp->info[j]) { return false; }//无对应信息，删除失败
+                        }//找到信息，删除
+                        info_tmp->remove(j);
+                        if (j == 0) {
+                            if (i >= 1) {//删除最前面，更新节点索引，不需向上调整索引
+                                key_tmp->key[i - 1] = info_tmp->key[0];
+                                mark = false;
+                            } else {//向上返回需调整的索引
+                                mark = true;
+                                key_new = info_tmp->key[0];
+                            }
+                        } else { mark = false; }
+                        if (info_tmp->number < max_info_number / 2) {
+                            flag = adjust_erase(key_tmp, i);//进行借块或并块调整，并更新flag
+                        } else { flag = false; }
+                        return true;
                     }
+
                 }
             }
             return false;//未删除
@@ -343,6 +345,7 @@ private:
                             if (!mark) { Info_operator.find(info_tmp->info[j]); }
                             else { Info_operator.modify(info_tmp->info[j]); }
                             flag = true;
+                            if (halt) { return true; }
                         }
                     }
                 }
@@ -352,6 +355,7 @@ private:
             for (int i = 0; i <= key_tmp->number; ++i) {
                 if (judge_key(key_tmp, i, key)) {
                     if (!find_and_modify(key, key_tmp->address[i], flag, mark)) { return false; }//已经结束
+                    if (halt) { return true; }
                     key_tmp = Files.get_key(addr);//防止key_tmp失效
                 }
             }
@@ -378,8 +382,10 @@ public:
     //若未找到，进行相应操作
     //包裹函数，兼具判断是否找到的功能
     void find(const Key &key) {
+        halt = false;
         bool flag = false;
         find_and_modify(key, Files.get_root_addr(), flag, 0);
+        if (halt) { return; }
         if (!flag) { Info_operator.not_find(); }
     }
 
@@ -389,8 +395,10 @@ public:
     //包裹函数，兼具判断是否找到的功能
     void modify(const Key &key) {
         if (is_key_repeated) { throw invalid_call(); }
+        halt = false;
         bool flag = false;
         find_and_modify(key, Files.get_root_addr(), flag, 1);
+        if (halt) { return; }
         if (!flag) { Info_operator.not_find(); }
     }
 
@@ -450,6 +458,8 @@ public:
     }
 
     bool is_empty() { return Files.is_empty(); }
+
+    void set_halt() { halt = true; }
 };
 
 #endif //B_PLUS_TREE_B_PLUS_TREE_H
