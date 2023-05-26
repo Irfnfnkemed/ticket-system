@@ -212,6 +212,10 @@ public:
         } else if (!ac_refund) {
             printf("-1\n");//购票失败
         } else {
+            if (info.seat_num < number_) {
+                printf("-1\n");//超过上限，失败
+                return;
+            }
             //加入候补队列
             Pending.insert(train::ID_and_date(train_id_, this_day - info.leave_time[beg] / 1440),
                            pending(user_name_, time_stamp_, beg, end, number_));
