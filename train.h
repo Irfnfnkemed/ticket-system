@@ -51,9 +51,16 @@ public:
         int operator-(const date &obj) {
             date tmp = *this;
             int out = 0;
-            while (tmp.date_int != obj.date_int) {
-                --tmp;
-                ++out;
+            if (tmp < obj) {
+                while (tmp.date_int != obj.date_int) {
+                    ++tmp;
+                    --out;
+                }
+            } else {
+                while (tmp.date_int != obj.date_int) {
+                    --tmp;
+                    ++out;
+                }
             }
             return out;
         }
