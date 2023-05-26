@@ -85,7 +85,6 @@ public:
         Token_scanner.scan();
         Token_scanner.next_token();
         int time = time_stamp(Token_scanner.get_now());
-        time;
         printf("%s ", Token_scanner.get_now());//输出时间戳
         Token_scanner.next_token();
         if (strcmp(Token_scanner.get_now(), "add_user") == 0) {

@@ -158,8 +158,8 @@ private:
         void modify(pending &obj, bool &tmp) {}
     };
 
-    B_plus_tree<user, user_order, 4096 * 5, user_order_operation> Orders;
-    B_plus_tree<train::ID_and_date, pending, 4096 * 5, pending_operation> Pending;
+    B_plus_tree<user, user_order, 4096, user_order_operation> Orders;
+    B_plus_tree<train::ID_and_date, pending, 4096, pending_operation> Pending;
 
 public:
     ticket(log *Log_, train *Train_) : Orders("order", true), Pending("pending", true) {
