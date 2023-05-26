@@ -463,7 +463,7 @@ public:
         }
     };
 
-    B_plus_tree<train_ID, train_info, 4096 * 5, train_info_operator> Trains;
+    B_plus_tree<train_ID, train_info, 4096 * 7, train_info_operator> Trains;
     B_plus_tree<ID_and_date, train_seat, 4096, train_seat_operator> Train_seats;
     B_plus_tree<station, pass, 4096, pass_operator> Stations;
     hash_link<train_ID, query_info, 1007, hash<train_ID, query_info>> tmp_hash;
