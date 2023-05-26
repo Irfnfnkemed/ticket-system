@@ -122,8 +122,8 @@ public:
 template<class key_node, class info_node>
 class files {
 private:
-    cache<key_node, 400> cache_key;//key相关的缓存
-    cache<info_node, 300> cache_info;//info相关的缓存
+    cache<key_node, 200> cache_key;//key相关的缓存
+    cache<info_node, 100> cache_info;//info相关的缓存
     size_t key_root;//根的位置
     size_t free_head;//第一个空闲节点的位置
     std::fstream file;
