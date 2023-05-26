@@ -147,6 +147,11 @@ public:
             tmp['p' - 'a'][0] = '\0';
             Token_scanner.read_by_command(tmp);
             Train.query_transfer(tmp['s' - 'a'], tmp['t' - 'a'], tmp['d' - 'a'], char_to_sort(tmp['p' - 'a']));
+        } else if (strcmp(Token_scanner.get_now(), "clean") == 0) {
+            Log.clean();
+            Train.clean();
+            Ticket.clean();
+            printf("0\n");
         } else if (strcmp(Token_scanner.get_now(), "exit") == 0) {
             printf("bye\n");
             end = true;

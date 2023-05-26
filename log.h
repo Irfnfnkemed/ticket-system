@@ -109,6 +109,11 @@ public:
         if (cur_privilege == -1) { return false; }//未登录
         else { return true; }
     }
+
+    void clean() {
+        log_account.clear();
+        Account.clean();
+    }
 };
 
 #endif //TICKET_SYSTEM_LOG_H

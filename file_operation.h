@@ -117,6 +117,19 @@ public:
         }
     }
 
+    void clean() {//直接清除（不需要将缓存存入文件中）
+        size = 0;
+        cache_node *p = head->next;
+        while (p != tail) {
+            head->next = p->next;
+            delete p->to;
+            delete p;
+            p = head->next;
+        }
+        tail->pre = head;
+        random_access.clear();
+    }
+
 };
 
 template<class key_node, class info_node>
@@ -127,25 +140,26 @@ private:
     size_t key_root;//根的位置
     size_t free_head;//第一个空闲节点的位置
     std::fstream file;
+    char file_name[100];
 
-    inline bool open_file(char file_name[]) {
-        file.open(file_name, std::ios::in);
+    inline bool open_file(char file_name_[]) {
+        file.open(file_name_, std::ios::in);
         if (file.is_open()) {
             file.close();
-            file.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
+            file.open(file_name_, std::ios::in | std::ios::out | std::ios::binary);
             return true;
         } else {
-            file.open(file_name, std::ios::out);
+            file.open(file_name_, std::ios::out);
             file.close();
-            file.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
+            file.open(file_name_, std::ios::in | std::ios::out | std::ios::binary);
             return false;
         }
     }
 
 public:
 
-    files(char file_name[]) {//初始化各个部分
-        if (!open_file(file_name)) {//创建初始空根节点
+    files(char file_name_[]) {//初始化各个部分
+        if (!open_file(file_name_)) {//创建初始空根节点
             key_root = 2 * sizeof(size_t);//初始时，第一个位置作为根节点
             free_head = 0;//0表明此时没有空闲空间
             file.seekg(0, std::ios::beg);
@@ -159,6 +173,7 @@ public:
             file.read(reinterpret_cast<char *>(&key_root), sizeof(size_t));
             file.read(reinterpret_cast<char *>(&free_head), sizeof(size_t));
         }
+        strcpy(file_name, file_name_);
     }
 
     ~files() {
@@ -167,6 +182,7 @@ public:
         file.write(reinterpret_cast<char *>(&free_head), sizeof(size_t));//更新第一个空闲节点位置
         cache_key.clear(file);
         cache_info.clear(file);
+        file.close();
     }
 
     inline key_node *get_key(size_t address) { return cache_key.get(address, file); }
@@ -217,6 +233,22 @@ public:
         return info_tmp->number == 0;
     }
 
+    bool clean() {
+        cache_key.clean();
+        cache_info.clean();
+        file.close();
+        file.open(file_name, std::ios::out);
+        file.close();
+        file.open(file_name, std::ios::in | std::ios::out | std::ios::binary);
+        key_root = 2 * sizeof(size_t);//初始时，第一个位置作为根节点
+        free_head = 0;//0表明此时没有空闲空间
+        file.seekg(0, std::ios::beg);
+        file.write(reinterpret_cast<char *>(&key_root), sizeof(size_t));
+        file.write(reinterpret_cast<char *>(&free_head), sizeof(size_t));
+        get_addr(0);//创建空的根节点
+        file.seekg(0, std::ios::end);
+        get_addr(1);//创建空的第一个信息节点
+    }
 };
 
 #endif //B_PLUS_TREE_FILE_OPERATION_H

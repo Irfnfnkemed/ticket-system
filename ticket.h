@@ -300,6 +300,11 @@ public:
         }
         printf("0\n");
     }
+
+    void clean() {
+        Orders.clean();
+        Pending.clean();
+    }
 };
 
 #endif //TICKET_SYSTEM_TICKET_H

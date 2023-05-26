@@ -733,6 +733,12 @@ public:
         printf(" %d %d\n", best.price_2, seat_2);
     }
 
+    void clean() {
+        Trains.clean();
+        Train_seats.clean();
+        Stations.clean();
+    }
+
 };
 
 #endif //TICKET_SYSTEM_TRAIN_H

@@ -96,8 +96,7 @@ class account {
     };
 
 private:
-    static const int M = 4096;
-    B_plus_tree<User_name, User_info, M, info_operator> user_account;
+    B_plus_tree<User_name, User_info, 4096, info_operator> user_account;
     bool is_empty;
 public:
     account() : user_account("account", false) {
@@ -175,6 +174,11 @@ public:
 
     void reset_modify() {
         for (int i = 0; i <= 3; ++i) { user_account.Info_operator.flag[i] = false; }
+    }
+
+    void clean() {
+        user_account.clean();
+        is_empty = true;
     }
 };
 

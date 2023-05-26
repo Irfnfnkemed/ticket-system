@@ -368,7 +368,7 @@ public:
     info_operator Info_operator;
 
 
-    B_plus_tree(char file_name[], bool flag = true) : Files(file_name) {
+    B_plus_tree(char file_name_[], bool flag = true) : Files(file_name_) {
         is_key_repeated = flag;
         //处理key的根节点信息
         key_node *key_root = Files.get_key(Files.get_root_addr());
@@ -458,6 +458,12 @@ public:
     }
 
     bool is_empty() { return Files.is_empty(); }
+
+    void clean() {
+        Files.clean();
+        key_node *key_root = Files.get_key(Files.get_root_addr());
+        key_root->is_leaf = true;
+    }
 };
 
 #endif //B_PLUS_TREE_B_PLUS_TREE_H
