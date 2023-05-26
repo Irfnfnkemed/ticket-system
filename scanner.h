@@ -144,12 +144,16 @@ public:
             tmp['n' - 'a'][0] = '\0';
             Token_scanner.read_by_command(tmp);
             Ticket.refund_ticket(tmp['u' - 'a'], char_to_n(tmp['n' - 'a']));
+        } else if (strcmp(Token_scanner.get_now(), "query_transfer") == 0) {
+            tmp['p' - 'a'][0] = '\0';
+            Token_scanner.read_by_command(tmp);
+            Train.query_transfer(tmp['s' - 'a'], tmp['t' - 'a'], tmp['d' - 'a'], char_to_sort(tmp['p' - 'a']));
         } else if (strcmp(Token_scanner.get_now(), "exit") == 0) {
             printf("bye\n");
             end = true;
         }
-    }
 
+    }
 
     inline bool is_end() { return end; }
 

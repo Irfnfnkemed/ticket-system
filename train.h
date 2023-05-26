@@ -48,6 +48,16 @@ public:
             return tmp;
         }
 
+        int operator-(const date &obj) {
+            date tmp = *this;
+            int out = 0;
+            while (tmp.date_int != obj.date_int) {
+                --tmp;
+                ++out;
+            }
+            return out;
+        }
+
         bool operator<(const date &obj) const { return date_int < obj.date_int; }
 
         void print() { printf("%c%d%c%02d", '0', date_int / 100, '-', date_int % 100); }
@@ -66,6 +76,8 @@ public:
         bool operator==(train_ID &obj) {
             return strcmp(train_id, obj.train_id) == 0;
         }
+
+        inline char *get_content() { return train_id; }
     };
 
     class train_info {
@@ -147,6 +159,12 @@ public:
         bool operator<(const station &obj) const {
             return strcmp(station_name, obj.station_name) < 0;
         }
+
+        bool operator==(const station &obj) const {
+            return strcmp(station_name, obj.station_name) == 0;
+        }
+
+        inline char *get_content() { return station_name; }
     };
 
     class pass {
@@ -268,9 +286,11 @@ public:
             price = price_;
             beg = beg_;
         }
+
+        static query_info not_find() { return query_info(-1, -1, -1); }
     };
 
-    template<class to>
+    template<class from, class to>
     class hash {
     private:
         int base = 10007;
@@ -280,15 +300,16 @@ public:
             max = max_;
         }
 
-        int operator()(train_ID id) {
+        int operator()(from from_) {
             unsigned int out = 0;
-            for (int i = 0; i < strlen(id.train_id); ++i) {
-                out = out * base + id.train_id[i];
+            char *tmp = from_.get_content();
+            for (int i = 0; i < strlen(tmp); ++i) {
+                out = out * base + tmp[i];
             }
             return out % max;
         }
 
-        to not_find_tag() { return to(-1, -1, -1); }
+        to not_find_tag() { return to::not_find(); }
     };
 
     class possible_train {
@@ -327,12 +348,120 @@ public:
         }
     };
 
+    class mid_element {
+    public:
+        char train_id[21];
+        int leave_time = -1;//从起始站出发时间
+        int arrive_time = -1;//到达中间站的时间
+        int price;
+        int beg;
+        int end;
+
+        mid_element() {}
+
+        mid_element(char train_id_[], int leave_time_, int arrive_time_,
+                    int price_, int beg_, int end_) {
+            strcpy(train_id, train_id_);
+            leave_time = leave_time_;
+            arrive_time = arrive_time_;
+            price = price_;
+            beg = beg_;
+            end = end_;
+        }
+    };
+
+    class possible_mid {
+    public:
+        vector<mid_element> possible_mid_vec;
+
+        possible_mid() {}
+
+        possible_mid(const possible_mid &obj) { possible_mid_vec = obj.possible_mid_vec; }
+
+        static possible_mid not_find() { return possible_mid(); }
+    };
+
+    class best_transfer {
+    public:
+        char train_id_1[21];
+        char train_id_2[21];
+        int leave_time_1;
+        int arrive_time_1;
+        int leave_time_2;
+        int arrive_time_2;
+        int price_1;
+        int price_2;
+        char mid_station[31];
+        int beg_1;
+        int end_1;
+        int beg_2;
+        int end_2;
+        date train_1_date;//第一辆车从其始发站出发的日期
+        date train_2_date;//第二辆车从其始发站出发的日期
+
+        static bool flag;//为true，以time排序；为false，以cost排序
+
+        best_transfer() {
+            train_1_date.date_int = 701;
+            train_2_date.date_int = 701;
+            price_1 = price_2 = 1e8;
+            leave_time_1 = 0;
+            arrive_time_2 = 1e8;
+        }
+
+        static void set_time() { flag = true; }
+
+        static void set_cost() { flag = false; }
+
+        bool operator<(best_transfer &obj) {
+            int cmp;
+            if (flag) {
+                cmp = (train_2_date - train_1_date) * 1440 + (arrive_time_2 - leave_time_1) -
+                      (obj.train_2_date - obj.train_1_date) * 1440 - (obj.arrive_time_2 - obj.leave_time_1);
+                if (cmp != 0) { return cmp < 0; }
+                cmp = (price_1 + price_2) - (obj.price_1 + obj.price_2);
+                if (cmp != 0) { return cmp < 0; }
+            } else {
+                cmp = (price_1 + price_2) - (obj.price_1 + obj.price_2);
+                if (cmp != 0) { return cmp < 0; }
+                cmp = (train_2_date - train_1_date) * 1440 + (arrive_time_2 - leave_time_1) -
+                      (obj.train_2_date - obj.train_1_date) * 1440 - (obj.arrive_time_2 - obj.leave_time_1);
+                if (cmp != 0) { return cmp < 0; }
+            }
+            cmp = strcmp(train_id_1, obj.train_id_1);
+            if (cmp != 0) { return cmp < 0; }
+            return strcmp(train_id_2, obj.train_id_2) < 0;
+        }
+
+        void set(char train_id_1_[], char train_id_2_[],
+                 int leave_time_1_, int arrive_time_1_, int leave_time_2_, int arrive_time_2_,
+                 int price_1_, int price_2_, char mid_station_[],
+                 int beg_1_, int end_1_, int beg_2_, int end_2_,
+                 date train_1_date_, date train_2_date_) {
+            strcpy(train_id_1, train_id_1_);
+            strcpy(train_id_2, train_id_2_);
+            leave_time_1 = leave_time_1_;
+            arrive_time_1 = arrive_time_1_;
+            leave_time_2 = leave_time_2_;
+            arrive_time_2 = arrive_time_2_;
+            price_1 = price_1_;
+            price_2 = price_2_;
+            strcpy(mid_station, mid_station_);
+            beg_1 = beg_1_;
+            end_1 = end_1_;
+            beg_2 = beg_2_;
+            end_2 = end_2_;
+            train_1_date = train_1_date_;
+            train_2_date = train_2_date_;
+        }
+    };
+
     B_plus_tree<train_ID, train_info, 4096 * 20, train_info_operator> Trains;
     B_plus_tree<ID_and_date, train_seat, 4096 * 5, train_seat_operator> Train_seats;
     B_plus_tree<station, pass, 4096 * 5, pass_operator> Stations;
-    hash_link<train_ID, query_info, 107, hash<query_info>> tmp_hash;
+    hash_link<train_ID, query_info, 1007, hash<train_ID, query_info>> tmp_hash;
     vector<possible_train> tmp_vec;
-
+    hash_link<station, possible_mid, 1007, hash<station, possible_mid>> tmp_mid_hash;
 public:
 
     train() : Trains("trains", false), Train_seats("seats", false), Stations("stations", true) {}
@@ -471,8 +600,9 @@ public:
     }
 
     void query_train(char train_id_[], char date_[]) {
-        try { Trains.find(train_ID(train_id_)); }
-        catch (operator_failed) {
+        Trains.Info_operator.set_fail_tag();
+        Trains.find(train_ID(train_id_));
+        if (Trains.Info_operator.fail_tag) {
             printf("-1\n");//未找到
             return;
         }
@@ -499,6 +629,103 @@ public:
             } else { printf(" x\n"); }
         }
     }
+
+    void query_transfer(char station_start_[], char station_to_[],
+                        char date_[], bool sort_) {//sort为true，按时间排序；反之，按价格排序
+        Stations.Info_operator.set_fail_tag();//重置
+        Stations.find(station(station_start_));
+        if (Stations.Info_operator.fail_tag) {
+            printf("0\n");//无过站车辆，结束
+            return;
+        }
+        date this_day = date(date_to_int(date_));
+        tmp_mid_hash.clear();
+        for (auto it = Stations.Info_operator.pass_train.begin();
+             it != Stations.Info_operator.pass_train.end(); ++it) {
+            if (this_day < it->train_date_begin + it->leave_time / 1440 ||
+                it->train_date_end + it->leave_time / 1440 < this_day) {
+                continue;//不在售票区间
+            }
+            Trains.find(it->train_id);
+            for (int i = it->number + 1; i < Trains.Info_operator.Train_info.station_num; ++i) {
+                if (tmp_mid_hash.find(station(Trains.Info_operator.Train_info.stations[i])).possible_mid_vec.empty()) {
+                    tmp_mid_hash.insert(station(Trains.Info_operator.Train_info.stations[i]), possible_mid());
+                }
+                vector<mid_element> &tmp_mid_vec =
+                        tmp_mid_hash.find(station(Trains.Info_operator.Train_info.stations[i])).possible_mid_vec;
+                tmp_mid_vec.push_back(mid_element(it->train_id, it->leave_time,
+                                                  Trains.Info_operator.Train_info.arrive_time[i],
+                                                  Trains.Info_operator.Train_info.sum_price[i] - (it->price),
+                                                  it->number, i));//加入对应的中间站信息
+            }
+        }
+        Stations.Info_operator.set_fail_tag();//重置
+        Stations.find(station(station_to_));
+        if (Stations.Info_operator.fail_tag) {
+            printf("0\n");//无过站车辆，结束
+            return;
+        }
+        if (sort_) { best_transfer::set_time(); }
+        else { best_transfer::set_cost(); }
+        best_transfer best, best_tmp;
+        bool next_day;
+        date first_day, mid_day;//第一辆、第二辆车从其始发站出发的日期
+        for (auto it = Stations.Info_operator.pass_train.begin();
+             it != Stations.Info_operator.pass_train.end(); ++it) {
+            Trains.find(it->train_id);
+            for (int i = 0; i < it->number; ++i) {
+                vector<mid_element> &tmp_mid_vec =
+                        tmp_mid_hash.find(station(Trains.Info_operator.Train_info.stations[i])).possible_mid_vec;
+                if (tmp_mid_vec.empty()) { continue; }//无对应的中间站
+                for (auto it_bef = tmp_mid_vec.begin(); it_bef != tmp_mid_vec.end(); ++it_bef) {
+                    if (strcmp(it_bef->train_id, it->train_id) == 0) { continue; }//不可换乘同一辆车
+                    first_day = this_day - it_bef->leave_time / 1440;
+                    if (it_bef->arrive_time % 1440 > Trains.Info_operator.Train_info.leave_time[i] % 1440) {
+                        next_day = true;
+                    } else { next_day = false; }
+                    if (it->train_date_end + Trains.Info_operator.Train_info.leave_time[i] / 1440 <
+                        first_day + it_bef->arrive_time / 1440 + next_day) {
+                        continue;//不在售票区间内
+                    } else if (first_day + it_bef->arrive_time / 1440 + next_day <
+                               it->train_date_begin + Trains.Info_operator.Train_info.leave_time[i] / 1440) {
+                        mid_day = it->train_date_begin;
+                    } else {
+                        mid_day = first_day + (it_bef->arrive_time) / 1440 + next_day -
+                                  Trains.Info_operator.Train_info.leave_time[i] / 1440;
+                    }
+                    best_tmp.set(it_bef->train_id, it->train_id,
+                                 it_bef->leave_time, it_bef->arrive_time,
+                                 Trains.Info_operator.Train_info.leave_time[i], it->arrive_time,
+                                 it_bef->price, it->price - Trains.Info_operator.Train_info.sum_price[i],
+                                 Trains.Info_operator.Train_info.stations[i],
+                                 it_bef->beg, it_bef->end, i, it->number,
+                                 first_day, mid_day);
+                    if (best_tmp < best) { best = best_tmp; }
+                }
+            }
+        }
+        if (best.price_1 == 1e8) {
+            printf("0\n");
+            return;
+        }
+        Train_seats.find(ID_and_date(best.train_id_1, best.train_1_date));
+        int seat_1 = get_max_seats(best.beg_1, best.end_1);
+        Train_seats.find(ID_and_date(best.train_id_2, best.train_2_date));
+        int seat_2 = get_max_seats(best.beg_2, best.end_2);
+        printf("%s %s ", best.train_id_1, station_start_);
+        print_date_and_time(best.train_1_date, best.leave_time_1);
+        printf(" -> ");
+        printf("%s ", best.mid_station);
+        print_date_and_time(best.train_1_date, best.arrive_time_1);
+        printf(" %d %d\n", best.price_1, seat_1);
+        printf("%s %s ", best.train_id_2, best.mid_station);
+        print_date_and_time(best.train_2_date, best.leave_time_2);
+        printf(" -> ");
+        printf("%s ", station_to_);
+        print_date_and_time(best.train_2_date, best.arrive_time_2);
+        printf(" %d %d\n", best.price_2, seat_2);
+    }
+
 };
 
 #endif //TICKET_SYSTEM_TRAIN_H

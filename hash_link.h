@@ -23,9 +23,13 @@ private:
 
     node *link[max];//用取模来实现散列
     hash Hash;
+    Value not_find_tag;
 
 public:
-    hash_link() : Hash(max) { for (int i = 0; i < max; ++i) { link[i] = nullptr; }}
+    hash_link() : Hash(max) {
+        for (int i = 0; i < max; ++i) { link[i] = nullptr; }
+        not_find_tag = Hash.not_find_tag();
+    }
 
     ~hash_link() { clear(); }
 
@@ -50,14 +54,14 @@ public:
         }
     }
 
-    Value find(Key key_) {
+    Value &find(Key key_) {
         node *p = link[Hash(key_)];
         while (p != nullptr) {
             if (p->key == key_) {
                 return p->value;
             } else { p = p->next; }
         }
-        return Hash.not_find_tag();
+        return not_find_tag;
     }
 
     bool modify(Key key_, Value value_) {
